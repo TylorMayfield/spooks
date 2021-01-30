@@ -3,7 +3,9 @@ sock = require "sock"
 bitser = require "lib.bitser"
 Gamestate = require "lib.gamestate"
 
+--Globals
 local ticksPerSec = 120
+
 
 --GameStates
 local GAMESTATE_PREROLL = {}
@@ -16,15 +18,17 @@ local GAMESTATE_LOBBY = {}
 local ghosty = love.graphics.newImage("img/ghosty.png")
 
 function love.load()
+    Gamestate.registerEvents()
+    Gamestate.switch(GAMESTATE_GAME)
+end
+
+function GAMESTATE_GAME:enter(previous) 
     -- how often an update is sent out
+    client = sock.newClient("localhost", 22122)
+    
     tickRate = 1/ticksPerSec
     tick = 0
 
-    Gamestate.registerEvents()
-    Gamestate.switch(GAMESTATE_PREROLL)
-    
-
-    client = sock.newClient("localhost", 22122)
     client:setSerialization(bitser.dumps, bitser.loads)
     client:setSchema("playerState", {
         "index",
@@ -34,7 +38,7 @@ function love.load()
     -- store the client's index
     -- playerNumber is nil otherwise
     client:on("playerNum", function(num)
-        playerNumber = num
+        PlayerNumber = num
     end)
 
     -- receive info on where the players are located
@@ -43,7 +47,7 @@ function love.load()
         local player = data.player
 
         -- only accept updates for the other player
-        if playerNumber and index ~= playerNumber then
+        if PlayerNumber and index ~= PlayerNumber then
             players[index] = player
         end
     end)
@@ -58,7 +62,7 @@ function love.load()
 
     client:connect()
 
-    function newPlayer(x, y)
+    function NewPlayer(x, y)
         return {
             x = x,
             y = y,
@@ -67,7 +71,7 @@ function love.load()
         }
     end
 
-    function newBall(x, y)
+    function NewBall(x, y)
         return {
             x = x,
             y = y,
@@ -81,16 +85,16 @@ function love.load()
     local marginX = 50
 
     players = {
-        newPlayer(marginX, love.graphics.getHeight()/2),
-        newPlayer(love.graphics.getWidth() - marginX, love.graphics.getHeight()/2)
+        NewPlayer(marginX, love.graphics.getHeight()/2),
+        NewPlayer(love.graphics.getWidth() - marginX, love.graphics.getHeight()/2)
     }
 
     scores = {0, 0}
 
-    ball = newBall(love.graphics.getWidth()/2, love.graphics.getHeight()/2)
+    ball = NewBall(love.graphics.getWidth()/2, love.graphics.getHeight()/2)
 end
 
-function love.update(dt)
+function GAMESTATE_GAME:update(dt)
     client:update()
     
     if client:getState() == "connected" then
@@ -104,18 +108,18 @@ function love.update(dt)
     if tick >= tickRate then
         tick = 0
 
-        if playerNumber then
+        if PlayerNumber then
             local mouseY = love.mouse.getY()
-            local playerY = mouseY - players[playerNumber].h/2
+            local playerY = mouseY - players[PlayerNumber].h/2
 
             -- Update our own player position and send it to the server
-            players[playerNumber].y = playerY
+            players[PlayerNumber].y = playerY
             client:send("mouseY", playerY)
         end
     end
 end
 
-function love.draw()
+function GAMESTATE_GAME:draw()
     for _, player in pairs(players) do
         love.graphics.rectangle('fill', player.x, player.y, player.w, player.h)
     end
@@ -123,8 +127,8 @@ function love.draw()
     love.graphics.draw(ghosty, ball.x, ball.y,0, 0.1, 0.1)
 
     love.graphics.print(client:getState(), 5, 5)
-    if playerNumber then
-        love.graphics.print("Player " .. playerNumber, 5, 25)
+    if PlayerNumber then
+        love.graphics.print("Player " .. PlayerNumber, 5, 25)
     else
         love.graphics.print("No player number assigned", 5, 25)
     end
