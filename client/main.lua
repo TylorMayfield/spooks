@@ -1,10 +1,18 @@
 package.path = package.path .. ";../../?.lua"
 sock = require "sock"
 bitser = require "lib.bitser"
-local menuengine = require "lib.menuengine"
+Gamestate = require "lib.gamestate"
 
 local ticksPerSec = 120
-local Current_State = "Menu"
+
+--GameStates
+local GAMESTATE_PREROLL = {}
+local GAMESTATE_MENU = {}
+local GAMESTATE_GAME = {}
+local GAMESTATE_SETTINGS = {}
+local GAMESTATE_LOBBY = {}
+
+
 local ghosty = love.graphics.newImage("img/ghosty.png")
 
 function love.load()
@@ -12,6 +20,8 @@ function love.load()
     tickRate = 1/ticksPerSec
     tick = 0
 
+    Gamestate.registerEvents()
+    Gamestate.switch(GAMESTATE_PREROLL)
     
 
     client = sock.newClient("localhost", 22122)
