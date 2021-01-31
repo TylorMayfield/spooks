@@ -4,6 +4,8 @@ bitser = require "lib.bitser"
 Gamestate = require "lib.gamestate"
 UI = require "lib.Gspot"
 
+Font = love.graphics.newFont("assets/font/ThinkNothing.otf")
+love.graphics.setFont(Font,1256,"normal",96)
 --Globals
 local ticksPerSec = 120
 
@@ -15,7 +17,7 @@ local GAMESTATE_SETTINGS = {}
 local GAMESTATE_LOBBY = {}
 
 
-local ghosty = love.graphics.newImage("img/ghosty.png")
+local ghosty = love.graphics.newImage("assets/ghosty.png")
 
 function love.load()
     Gamestate.registerEvents()
@@ -142,8 +144,8 @@ function GAMESTATE_MENU:draw()
     love.graphics.setColor(0,0,0, 100)
     love.graphics.rectangle('fill', 0,0, W,H)
     love.graphics.setColor(255,255,255)
-    love.graphics.printf('Test', 0, H/2, W, 'center')
-    love.graphics.print("("..tostring(love.timer.getFPS( ))..")", 10, 10)
+    love.graphics.printf('NOT Phasmophobia', 0, H/2, W, 'center')
+    love.graphics.print("FPS"..tostring(love.timer.getFPS( )), 10, 10)
 end
 
 function GAMESTATE_MENU:keypressed(key, code)
