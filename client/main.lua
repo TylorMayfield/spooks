@@ -2,10 +2,10 @@ package.path = package.path .. ";../../?.lua"
 sock = require "sock"
 bitser = require "lib.bitser"
 Gamestate = require "lib.gamestate"
+UI = require "lib.Gspot"
 
 --Globals
 local ticksPerSec = 120
-
 
 --GameStates
 local GAMESTATE_PREROLL = {}
@@ -19,13 +19,12 @@ local ghosty = love.graphics.newImage("img/ghosty.png")
 
 function love.load()
     Gamestate.registerEvents()
-    Gamestate.switch(GAMESTATE_GAME)
+    Gamestate.switch(GAMESTATE_MENU)
 end
 
 function GAMESTATE_GAME:enter(previous) 
     -- how often an update is sent out
     client = sock.newClient("localhost", 22122)
-    
     tickRate = 1/ticksPerSec
     tick = 0
 
@@ -134,4 +133,30 @@ function GAMESTATE_GAME:draw()
     end
     local score = ("%d - %d"):format(scores[1], scores[2])
     love.graphics.print(score, 5, 45)
+    love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+end
+
+function GAMESTATE_MENU:draw() 
+    local W, H = love.graphics.getWidth(), love.graphics.getHeight()
+    -- overlay with pause message
+    love.graphics.setColor(0,0,0, 100)
+    love.graphics.rectangle('fill', 0,0, W,H)
+    love.graphics.setColor(255,255,255)
+    love.graphics.printf('Test', 0, H/2, W, 'center')
+    love.graphics.print("("..tostring(love.timer.getFPS( ))..")", 10, 10)
+end
+
+function GAMESTATE_MENU:keypressed(key, code)
+    if key == 'p' then
+        return Gamestate.push(GAMESTATE_GAME)
+    end
+end
+
+function love.update(dt)
+    Gamestate.update(dt) -- pass dt to currentState:update(dt)
+end
+
+function love.draw()
+    
+    Gamestate.draw() -- <callback> is `draw'
 end
