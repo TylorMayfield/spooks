@@ -5,6 +5,7 @@
         "tick",
         "sock",
         "bitser",
-        "client"
+        "client",
+        "dt"
     ]
 }
